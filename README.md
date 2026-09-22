@@ -1,40 +1,65 @@
-<div align="center">
+![perf-x-ray — Nicholas Ashkar editorial artwork](assets/nicholas-ashkar/banner.png)
 
 # perf-x-ray
 
-**Catch N+1 queries, sync I/O, ReDoS, and O(n²) loops before they hit production.**
+Find source patterns that may deserve performance review before profiling an application.
 
-[![License](https://img.shields.io/github/license/NickCirv/perf-x-ray?style=flat-square&labelColor=0B0A09)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen?style=flat-square&labelColor=0B0A09)](package.json)
+Scans supported source files with language-specific regex rules, filters findings by severity and generates text, JSON or Markdown reports.
 
-</div>
 
-## Install
+<a id="install"></a>
+
+## Quickstart
+
+Package runtime requirement: Node.js `>=20`. Git is needed to obtain this pinned source checkout.
 
 ```bash
-npx github:NickCirv/perf-x-ray scan ./src
+git clone https://github.com/NickCirv/perf-x-ray.git
+cd perf-x-ray
+git checkout aa92ada0849b48b472a95c524341d92e136e78be
+npm install --ignore-scripts
+node bin/xray.js rules
 ```
+
+This source-derived example has not been executed in this review. The command lists the shipped rule catalog. A scan reports matched patterns rather than measured timing.
+
+
+<a id="what-it-does"></a>
 
 ## Usage
 
 ```bash
-npx github:NickCirv/perf-x-ray scan ./src          # scan a directory
-npx github:NickCirv/perf-x-ray check server.js     # check a single file
-npx github:NickCirv/perf-x-ray report ./src        # generate Markdown report
-npx github:NickCirv/perf-x-ray rules               # list all built-in rules
+node bin/xray.js scan ./src --severity high --format json
+node bin/xray.js check src/example.js --fix
+node bin/xray.js report ./src --output perf-review.md
 ```
 
-| Flag | Description |
-|------|-------------|
-| `--severity low\|medium\|high\|critical` | Minimum severity to show (default: `low`) |
-| `--format text\|json\|markdown` | Output format (default: `text`) |
-| `--ignore <patterns>` | Comma-separated dirs/files to skip |
-| `--fix` | Show fix suggestions inline |
-| `--output <file>` | Report output path (default: `perf-xray-report.md`) |
+Scan/check exit 1 when filtered findings remain. A single-file read failure exits 2. `--fix` includes suggestions; it does not rewrite source. `report` writes Markdown.
 
-## What it does
+[Command reference](docs/REFERENCE.md) covers arguments, modes and output controls.
 
-Static analysis for JavaScript, TypeScript, Python, Go, and SQL. Scans for ten performance anti-patterns — sync I/O in async handlers, N+1 database queries, ReDoS-vulnerable regexes, unbounded SQL queries, O(n²) nested loops, full lodash/moment imports, missing pagination, un-memoised React components, and more. Runs in ~200ms with no browser, no config, no API keys. Exits with code `1` when findings exist so it drops cleanly into any CI pipeline.
+## Behavior and limits
 
----
-<sub>Node ≥18 · MIT · by <a href="https://github.com/NickCirv">NickCirv</a></sub>
+A matched synchronous call or loop is not proof of a bottleneck. The checks do not execute code, use a browser or capture traces; false positives and missed cases are expected. Measure a suspected problem before changing implementation.
+
+## Development
+
+Declared package scripts:
+
+| Script | Command |
+| --- | --- |
+| `start` | `node bin/xray.js` |
+| `lint` | `node --check src/*.js bin/xray.js` |
+| `test` | `node --test` |
+
+The smoke test syntax-checks the entrypoint; it does not exercise CLI behavior or integrations.
+
+## Research
+
+[Source review and claim ledger](docs/RESEARCH.md) records revision `aa92ada0849b`, inspected files and verification gaps.
+
+## License and attribution
+
+Protected license and attribution files remain unchanged: [LICENSE](https://github.com/NickCirv/perf-x-ray/blob/aa92ada0849b48b472a95c524341d92e136e78be/LICENSE).
+
+[Artwork credits](assets/nicholas-ashkar/CREDITS.md) · [Nicholas Ashkar — consulting](https://nicholashkar.com/#oxblood-contact)
